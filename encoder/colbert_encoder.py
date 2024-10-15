@@ -29,7 +29,7 @@ class ColbertEncoder(nn.Module):
         self.skiplist = {w: True
                          for symbol in string.punctuation
                          for w in [symbol, self.raw_tokenizer.encode(symbol, add_special_tokens=False)[0]]}
-        self.pad_token = self.raw_tokenizer.pad_token_id
+        self.pad_token = 103
 
 
 

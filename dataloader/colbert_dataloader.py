@@ -27,5 +27,4 @@ class ColbertDataset(Dataset):
                     corpus[line.get('_id')] = line.get('text')
                 elif "doc_id" in line.keys():
                     corpus[line.get("doc_id")] = line.get("text")
-
         return corpus

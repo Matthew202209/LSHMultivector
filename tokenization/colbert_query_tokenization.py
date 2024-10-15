@@ -88,9 +88,9 @@ class QueryTokenizer():
             ids = torch.cat((ids, ids_2), dim=-1)
             mask = torch.cat((mask, mask_2), dim=-1)
 
-        if self.config.attend_to_mask_tokens:
-            mask[ids == self.mask_token_id] = 1
-            assert mask.sum().item() == mask.size(0) * mask.size(1), mask
+        # if self.config.attend_to_mask_tokens:
+        #     mask[ids == self.mask_token_id] = 1
+        #     assert mask.sum().item() == mask.size(0) * mask.size(1), mask
 
         if bsize:
             batches = _split_into_batches(ids, mask, bsize)

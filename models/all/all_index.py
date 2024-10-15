@@ -46,7 +46,6 @@ class AllIndex(BaseIndex):
         self.token_labels = torch.tensor(self.token_labels).to(torch.int64).to("cpu")
         self.all_embs = self.all_embs.to(torch.float32).to("cpu")
             
-        
 
     def setup(self):
         self.prepare_model()
