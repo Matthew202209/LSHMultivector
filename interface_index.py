@@ -1,5 +1,6 @@
 import argparse
 
+from models.Hamming.hamming_index import HammingIndex
 from models.all.all_index import AllIndex
 
 
@@ -12,26 +13,22 @@ if __name__ == '__main__':
     parser.add_argument("--dataset", type=str, default=r"nfcorpus")
     parser.add_argument("--device", type=str, default=r"cuda:0")
 
-
-
     parser.add_argument("--dim", type=int, default=128)
     parser.add_argument("--hidden_size", type=int, default=768)
     parser.add_argument("--doc_maxlen", type=int, default=300)
-    parser.add_argument("--index_batch_size", type=int, default=32)
+    parser.add_argument("--index_batch_size", type=int, default=64)
     parser.add_argument("--doc_token", type=str, default="[D]")
     parser.add_argument("--doc_token_id", type=str, default="[unused1]")
-
-
 
     parser.add_argument("--query_maxlen", type=int, default=32)
     parser.add_argument("--query_token", type=str, default="[Q]")
     parser.add_argument("--query_token_id", type=str, default="[unused0]")
 
-    parser.add_argument("--num_doc", type=int, default=3633)
+    parser.add_argument("--hash_dimmension", type=int, default=16)
 
     args = parser.parse_args()
 
-    index = AllIndex(args)
+    index = HammingIndex(args)
     index.setup()
     index.fit()
 

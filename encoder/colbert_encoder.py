@@ -29,7 +29,8 @@ class ColbertEncoder(nn.Module):
         self.skiplist = {w: True
                          for symbol in string.punctuation
                          for w in [symbol, self.raw_tokenizer.encode(symbol, add_special_tokens=False)[0]]}
-        self.pad_token = 103
+        self.pad_token = self.raw_tokenizer.pad_token_id
+        # self.pad_token = 103
 
 
 
@@ -73,7 +74,7 @@ class ColbertEncoder(nn.Module):
     def encode_doc(self, *args, to_cpu=False, **kw_args):
         with torch.no_grad():
             with self.amp_manager.context():
-                D = self._doc(*args, **kw_args)
+                D= self._doc(*args, **kw_args)
                 if to_cpu:
                     return (D[0].cpu(), *D[1:]) if isinstance(D, tuple) else D.cpu()
 
@@ -127,7 +128,6 @@ class ColbertEncoder(nn.Module):
                 D, mask, ids = torch.cat(D)[reverse_indices], torch.cat(mask)[reverse_indices], torch.cat(ids)[reverse_indices]
 
                 doclens = mask.squeeze(-1).sum(-1).tolist()
-
                 D = D.view(-1, self.config.dim)
                 D = D[mask.bool().flatten()].cpu()
                 ids = ids.flatten()[mask.bool().flatten().cpu()].tolist()
