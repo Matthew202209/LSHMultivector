@@ -31,14 +31,13 @@ class HammingSearcher(BaseSearcher):
         cls_rep = q_reprs[0][0]
         self.cls_search(cls_rep)
         self.lsh_search(q_reprs[:,1:])
-        print(1)
         top_scores, top_ids = self.select_top_k()
         self.reset_sum_scores()
         return top_scores, top_ids
 
     def cls_search(self, cls_rep):
         self.sum_scores = torch.matmul(cls_rep, self.cls_reps.T).unsqueeze(0)
-        print(1)
+
 
 
     def lsh_search(self, embeddings):

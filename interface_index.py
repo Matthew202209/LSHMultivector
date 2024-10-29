@@ -1,9 +1,10 @@
 import argparse
 
 from models.Hamming.hamming_index import HammingIndex
+from models.Hamming_acc.hamming_acc_index import HammingAccIndex
 from models.all.all_index import AllIndex
 
-
+from bitstring import BitArray
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--checkpoints_dir", type=str, default=r"./checkpoints/colbertv2.0")
@@ -24,11 +25,14 @@ if __name__ == '__main__':
     parser.add_argument("--query_token", type=str, default="[Q]")
     parser.add_argument("--query_token_id", type=str, default="[unused0]")
 
-    parser.add_argument("--hash_dimmension", type=int, default=16)
+    parser.add_argument("--hash_dimmension", type=int, default=32)
 
     args = parser.parse_args()
 
-    index = HammingIndex(args)
-    index.setup()
-    index.fit()
+    for hash_dimmension in [16]:
+        args.hash_dimmension = hash_dimmension
+        print(args.hash_dimmension)
+        index = HammingAccIndex(args)
+        index.setup()
+        index.fit()
 
