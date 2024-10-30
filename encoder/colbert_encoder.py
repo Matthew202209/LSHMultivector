@@ -91,11 +91,10 @@ class ColbertEncoder(nn.Module):
 
         input_ids, attention_mask = self.query_tokenizer.tensorize(queries, context=context, full_length_search=full_length_search)
 
-        # perf_encode.startCounters()
+        num_token = torch.sum(attention_mask.squeeze(0)).item()
         query = self.encode_query(input_ids, attention_mask)
-        # perf_encode.stopCounters()
 
-        return query
+        return query[:,:num_token,:]
 
     def docFromText(self, docs, bsize=None, keep_dims=True, to_cpu=False, showprogress=False, return_tokens=False):
         assert keep_dims in [True, False, 'flatten']

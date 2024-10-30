@@ -1,3 +1,6 @@
+import pickle
+
+
 class TrieNode:
     def __init__(self):
         self.children = {}
@@ -27,8 +30,8 @@ class Trie:
         if current_distance > max_distance:
             return
         if node.is_leaf:
-            self.result[0]+= [node.data[0]]
-            self.result[1]+= [node.data[1]]  # 直接产出所有子集
+            self.result[0]+= node.data[0]
+            self.result[1]+= node.data[1] # 直接产出所有子集
         for bit, child in node.children.items():
             new_code = current_code + bit
             new_distance = current_distance + (bit != binary_code[len(new_code) - 1])
@@ -44,8 +47,13 @@ if __name__ == '__main__':
     trie.insert("001", [[4, 5, 6], [4, 15, 6]])
     trie.insert("111", [[7, 8, 9], [7, 18, 9]])
 
+    with open("test.pkl", "wb") as f:
+        pickle.dump(trie, f)
+
+    with open("test.pkl", "rb") as f:
+        loaded_trie = pickle.load(f)
     query_code = "000"
     max_distance = 3
-    result = trie.search(query_code, max_distance)
+    result = loaded_trie.search(query_code, max_distance)
     trie.reset_result()
     print(result)

@@ -1,4 +1,5 @@
 import gzip
+import json
 import os
 import perf_event
 
@@ -102,10 +103,23 @@ class HammingAccRetrieve(HammingRetrieve):
             os.makedirs(self.rank_path)
         if not os.path.exists(self.eval_path):
             os.makedirs(self.eval_path)
+    def save_metadata(self):
+        num_tokens = 0
+        for bin in self.searcher.hash_bins.values():
+            num_tokens += int(bin['dense_repr'][0].shape[0])
+
+        metadata = {"num_docs": len(list(self.corpus.corpus.keys())),
+                    "num_tokens": num_tokens}
+        save_dir = r"{}/hamming_acc/{}".format(self.config.results_save_to, self.config.dataset)
+        with open(os.path.join(save_dir, "metadata.json"), "w") as f:
+            json.dump(metadata, f)
+
 
     def run(self):
         self.setup()
         path = self.retrieve()
         self.evaluation(path)
         self.save_perf()
+        self.save_metadata()
+
 

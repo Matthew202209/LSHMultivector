@@ -16,12 +16,15 @@ class HammingAccSearcher(HammingSearcher):
         self.token_labels = torch.load(r"{}/{}".format(index_dir, 'token_labels.pt'), map_location="cpu")
         self.hash_matrix = torch.load(r"{}/{}".format(index_dir, 'hash_matrix.pt'), map_location="cpu")
         self.hash_bins = torch.load(r"{}/{}".format(index_dir, 'hash_bins.pt'), map_location="cpu")
+        self.hash_ivd = torch.load(r"{}/{}".format(index_dir, 'hash_ivd.pt'), map_location="cpu")
 
 
     def lsh_search(self, embeddings):
         hamming_matrix = self.cal_hash_value(embeddings).squeeze()
-        for i, hamming_key in enumerate(tqdm(hamming_matrix)):
+        for i, hamming_key in enumerate(hamming_matrix):
             hash_value = "".join(hamming_key.numpy().astype(str))
+            # if hash_value not in list(self.hash_bins.keys()):
+            #     continue
             doc_token_reps, token_pid = self.find_similar_bins(hash_value)
             token_score = torch.matmul(embeddings[0][i], doc_token_reps.T).relu_()
             token_pid_tensor = torch.Tensor(token_pid).to(torch.int64)
@@ -30,13 +33,15 @@ class HammingAccSearcher(HammingSearcher):
             self.max_scores.fill_(0)
 
 
-    def find_similar_bins(self, query):
+    def find_similar_bins(self, query_hash_value):
         doc_token_reps = []
         token_pid = []
-        for key, value in self.hash_bins.items():
-            if HammingAccSearcher.hamming_distance(query, key) <= self.hamming_threshold:
-                doc_token_reps.append(value["dense_repr"][0])
-                token_pid += value["dense_repr"][1]
+        relative_hash_values = self.hash_ivd[query_hash_value]
+        for key in relative_hash_values:
+            if key not in list(self.hash_bins.keys()):
+                continue
+            doc_token_reps.append(self.hash_bins[key]["dense_repr"][0])
+            token_pid += self.hash_bins[key]["dense_repr"][1]
         doc_token_reps = torch.cat(doc_token_reps, dim=0)
         return doc_token_reps, token_pid
 

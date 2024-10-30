@@ -17,22 +17,27 @@ if __name__ == '__main__':
     parser.add_argument("--dim", type=int, default=128)
     parser.add_argument("--hidden_size", type=int, default=768)
     parser.add_argument("--doc_maxlen", type=int, default=300)
-    parser.add_argument("--index_batch_size", type=int, default=64)
+    parser.add_argument("--index_batch_size", type=int, default=128)
     parser.add_argument("--doc_token", type=str, default="[D]")
     parser.add_argument("--doc_token_id", type=str, default="[unused1]")
 
     parser.add_argument("--query_maxlen", type=int, default=32)
     parser.add_argument("--query_token", type=str, default="[Q]")
     parser.add_argument("--query_token_id", type=str, default="[unused0]")
-
+    parser.add_argument("--hamming_threshold", type=int, default=2)
     parser.add_argument("--hash_dimmension", type=int, default=32)
 
     args = parser.parse_args()
 
-    for hash_dimmension in [16]:
-        args.hash_dimmension = hash_dimmension
-        print(args.hash_dimmension)
+    for dataset in ["fiqa"]:
+        args.dataset = dataset
+        print(args.dataset)
         index = HammingAccIndex(args)
         index.setup()
-        index.fit()
+        index.encode()
+        index.indexing()
+        for hash_dimmension in range(5,17):
+            args.hash_dimmension = hash_dimmension
+            print(args.hash_dimmension)
+            index.fit()
 
