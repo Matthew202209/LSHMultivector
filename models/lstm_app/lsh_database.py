@@ -24,11 +24,11 @@ class LSHDatabase:
 
     def create_random_hash_matrix(self):
     # First layer
-        self.hash_matrix[0, 0:self.config.first_layer_hash_dim,:] = LSHDatabase.create_random_hash_vectors(self.config.first_layer_hash_dim,
+        self.hash_matrix[1, 0:self.config.first_layer_hash_dim,:] = LSHDatabase.create_random_hash_vectors(self.config.first_layer_hash_dim,
                                                                                                            self.token_reps_dim)
         for i in range(self.config.tree_layers-1):
             dim = 2**(self.config.first_layer_hash_dim + (i+1)*self.config.hash_dim)-1
-            self.hash_matrix[i, 0:dim, :] = LSHDatabase.create_random_hash_vectors(self.config.hash_dim/2, self.token_reps_dim)
+            self.hash_matrix[i+2, 0:dim, :] = LSHDatabase.create_random_hash_vectors(self.config.hash_dim/2, self.token_reps_dim)
 
     @staticmethod
     def create_random_hash_vectors(num_vectors:int, token_reps_dim: int):
