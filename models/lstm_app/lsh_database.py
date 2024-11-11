@@ -17,6 +17,7 @@ class LSHDatabase:
         self.num_token = num_token
         self.token_reps_dim = token_reps_dim
         self.token_reps = np.zeros((num_token, token_reps_dim))
+        self.token_d_ids =  np.zeros((num_token, 1))
         self.hash_matrix = np.zeros((self.config.tree_layers,
                                      2**(self.config.first_layer_hash_dim+self.config.hash_dim*(self.config.tree_layers-1)),
                                      token_reps_dim))
