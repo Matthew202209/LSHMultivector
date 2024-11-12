@@ -26,10 +26,9 @@ class LSHTreeIndex:
 
     def build_tree(self):
     # first layer
-
         for id in range(2**self.first_layer_hash_dim):
-            first_layer_note = TreeNote(1, id)
-            self.build_other_layer(first_layer_note, 2, id)
+            first_layer_note = TreeNote(2, id)
+            self.build_other_layer(first_layer_note, 3, id)
             self.root.children.append(first_layer_note)
 
     def build_other_layer(self, note, layer, father_id):
@@ -41,6 +40,7 @@ class LSHTreeIndex:
                 note.children.append(new_note)
             else:
                 new_note.is_leaf = True
+                note.children.append(new_note)
 
     def insert(self, vector, vector_index):
         self.cal_hash_values(vector)

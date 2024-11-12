@@ -1,10 +1,6 @@
 import argparse
+from models.lstm_app.lstm_app_index import LSTMAPPIndex
 
-from models.Hamming.hamming_index import HammingIndex
-from models.Hamming_acc.hamming_acc_index import HammingAccIndex
-from models.all.all_index import AllIndex
-
-from bitstring import BitArray
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--checkpoints_dir", type=str, default=r"./checkpoints/colbertv2.0")
@@ -27,17 +23,26 @@ if __name__ == '__main__':
     parser.add_argument("--hamming_threshold", type=int, default=2)
     parser.add_argument("--hash_dimmension", type=int, default=32)
 
+    parser.add_argument("--tree_layers", type=int, default=4)
+    parser.add_argument("--first_layer_hash_dim", type=int, default=4)
+    parser.add_argument("--hash_dim", type=int, default=8)
+
+
+
+
     args = parser.parse_args()
 
     for dataset in ["nfcorpus"]:
         args.dataset = dataset
         print(args.dataset)
-        index = HammingAccIndex(args)
+        index = LSTMAPPIndex(args)
         index.setup()
-        index.encode()
-        index.indexing()
-        for hash_dimmension in range(5,17):
-            args.hash_dimmension = hash_dimmension
-            print(args.hash_dimmension)
-            index.fit()
+
+
+        # index.encode()
+        # index.indexing()
+        # for hash_dimmension in range(5,17):
+        #     args.hash_dimmension = hash_dimmension
+        #     print(args.hash_dimmension)
+        #     index.fit()
 
