@@ -78,12 +78,13 @@ class LSHTreeIndex:
             r_vectors, r_d_ids = self.get_related_d_v(q_v)
             all_r_repr.append(r_vectors)
             all_r_lens.append(len(r_vectors))
+            all_q_lens.append(len(all_q_v))
             all_r_ids.append(r_d_ids)
         if len(all_r_repr) > 0:
             all_r_repr = torch.tensor(np.concatenate(all_r_repr, axis = 0)).to(torch.float32)
             all_r_lens = torch.tensor(all_r_lens).to(torch.float32)
             all_r_ids = torch.tensor(all_r_ids).to(torch.float32)
-        return all_r_repr, all_r_lens, all_r_ids
+        return all_r_repr, all_r_lens, all_q_lens, all_r_ids
 
 
     def get_related_d_v(self, q_v):
@@ -91,12 +92,13 @@ class LSHTreeIndex:
         self.cal_hash_values(q_v)
         d_vectors = self.lsh_database.token_reps
         token_d_ids = self.lsh_database.token_d_ids
-        # first layer
-        first_hash_value = "".join(str(bit) for bit in self.hash_values[1,0,0:self.first_layer_hash_dim])
-        child_note = self.root.binary_index[0][first_hash_value]
+        first_hash_value = self.get_new_hash_value(1,0, self.first_layer_hash_dim)
+        child_note = self.root.binary_index[0][int(first_hash_value,2)]
         self.get_d_v_index(child_note)
         assert len(self.related_d_v_index) != 0
         related_d_v_index = list(set(self.related_d_v_index))
+        self.reset_related_d_v_index()
+
         return d_vectors[related_d_v_index], token_d_ids[related_d_v_index]
 
 
@@ -104,7 +106,7 @@ class LSHTreeIndex:
 
     def get_d_v_index(self, note):
         children = []
-        new_hash_value = self.get_new_hash_value(note.layer, note.id)
+        new_hash_value = self.get_new_hash_value(note.layer, note.id, self.hash_dim)
         if note.is_leaf:
             self.related_d_v_index += note.vectors_indexes
         else:
@@ -125,6 +127,8 @@ class LSHTreeIndex:
     def get_new_hash_value(self, layer, id, hash_dim):
         return "".join(str(bit) for bit in self.hash_values[layer-1, id:id+hash_dim])
 
+    def reset_related_d_v_index(self):
+        self.related_d_v_index = []
 
     @staticmethod
     def split_binary_string(binary_string, start_index, end_index):
