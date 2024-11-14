@@ -32,7 +32,7 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    for dataset in ["fiqa"]:
+    for dataset in ["nfcorpus"]:
         args.dataset = dataset
         print(args.dataset)
         index = LSTMAPPIndex(args)

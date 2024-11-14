@@ -66,7 +66,6 @@ class LSTMAPPIndex(BaseIndex):
         assert self.embs_list is not None
         self.all_embs = torch.cat(self.embs_list, dim=0)
         self.token_labels = []
-        self.cls_reps = []
         self.token_reps = []
         offsets = [0]
         for doclen in self.doclens_list:
@@ -77,18 +76,20 @@ class LSTMAPPIndex(BaseIndex):
         d_id = 0
         for token_id, embs in enumerate(tqdm(self.all_embs)):
             if token_id in offsets:
-                self.cls_reps.append(embs.unsqueeze(0))
+                cls_rep = embs.unsqueeze(0).detach().numpy()
+                self.lsh_database.cls_reps.append(cls_rep)
             else:
-                token_repr = embs.unsqueeze(0).detach().numpy()
-                self.lsh_database.token_reps.append(token_repr)
+                token_rep = embs.unsqueeze(0).detach().numpy()
+                self.lsh_database.token_reps.append(token_rep)
                 self.lsh_database.token_d_ids.append(d_id)
-                self.tree_index.insert(token_repr, i)
+                self.tree_index.insert(token_rep, i)
                 n +=1
                 i +=1
                 if n == self.doclens_list[d_id] - 1:
                     n = 0
                     d_id += 1
 
+        self.lsh_database.cls_reps = np.concatenate(self.lsh_database.cls_reps, axis=0)
         self.lsh_database.token_reps = np.concatenate(self.lsh_database.token_reps, axis=0)
         self.lsh_database.token_d_ids = np.array(self.lsh_database.token_d_ids)
 
@@ -98,9 +99,6 @@ class LSTMAPPIndex(BaseIndex):
         if not os.path.exists(save_path):
             os.makedirs(save_path)
 
-        np.save(os.path.join(save_path, "token_reps.npy"), self.lsh_database.token_reps)
-        np.save(os.path.join(save_path, "token_d_ids.npy"), self.lsh_database.token_d_ids)
-        np.save(os.path.join(save_path, "hash_matrix.npy"), self.lsh_database.hash_matrix)
-
+        self.lsh_database.save_index(save_path)
         with open(os.path.join(save_path, "tree_index.pkl"), "wb") as f:
             pickle.dump(self.tree_index, f)

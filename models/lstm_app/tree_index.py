@@ -72,7 +72,7 @@ class LSHTreeIndex:
                 self.set_binary_index(note.children[int(new_hash_value, 2)], vector_index)
 
     def hash_search(self, all_q_v):
-        all_r_repr, all_r_lens, all_r_ids= [], [], []
+        all_r_repr, all_r_lens, all_q_lens, all_r_ids= [], [], [], []
         for q_v in all_q_v:
             q_v = q_v.detach().numpy()
             r_vectors, r_d_ids = self.get_related_d_v(q_v)
@@ -81,6 +81,8 @@ class LSHTreeIndex:
             all_r_ids.append(r_d_ids)
         if len(all_r_repr) > 0:
             all_r_repr = torch.tensor(np.concatenate(all_r_repr, axis = 0)).to(torch.float32)
+            all_r_lens = torch.tensor(all_r_lens).to(torch.float32)
+            all_r_ids = torch.tensor(all_r_ids).to(torch.float32)
         return all_r_repr, all_r_lens, all_r_ids
 
 

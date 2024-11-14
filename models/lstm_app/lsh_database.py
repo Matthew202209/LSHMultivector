@@ -1,4 +1,5 @@
 import math
+import os
 
 import numpy as np
 
@@ -20,6 +21,7 @@ class LSHDatabase:
                                      token_reps_dim))
 
         self.token_reps = []
+        self.cls_reps = []
         self.token_d_ids = []
 
 
@@ -30,6 +32,18 @@ class LSHDatabase:
         for i in range(self.config.tree_layers-2):
             dim = 2**(self.config.first_layer_hash_dim+self.config.hash_dim*i)*self.config.hash_dim
             self.hash_matrix[i+1, 0:dim, :] = create_random_hash_vectors(int(dim/2), self.token_reps_dim)
+
+    def save_index(self, save_path):
+        np.save(os.path.join(save_path, "cls_reps.npy"), self.cls_reps)
+        np.save(os.path.join(save_path, "token_reps.npy"), self.token_reps)
+        np.save(os.path.join(save_path, "token_d_ids.npy"), self.token_d_ids)
+        np.save(os.path.join(save_path, "hash_matrix.npy"), self.hash_matrix)
+
+    def load_index(self, load_path):
+        self.cls_reps = np.load(os.path.join(load_path, "cls_reps.npy"))
+        self.token_reps  = np.load(os.path.join(load_path, "token_reps.npy"))
+        self.token_reps = np.load(os.path.join(load_path, "token_d_ids.npy"))
+        self.hash_matrix  = np.load(os.path.join(load_path, "hash_matrix.npy"))
 
 
 
