@@ -23,7 +23,7 @@ if __name__ == '__main__':
     parser.add_argument("--hamming_threshold", type=int, default=2)
     parser.add_argument("--hash_dimmension", type=int, default=32)
 
-    parser.add_argument("--tree_layers", type=int, default=4)
+    parser.add_argument("--tree_layers", type=int, default=3)
     parser.add_argument("--first_layer_hash_dim", type=int, default=4)
     parser.add_argument("--hash_dim", type=int, default=8)
 
@@ -32,11 +32,14 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    for dataset in ["nfcorpus"]:
+    for dataset in ["fiqa"]:
         args.dataset = dataset
         print(args.dataset)
         index = LSTMAPPIndex(args)
         index.setup()
+        index.encode()
+        index.indexing()
+        index.save_index()
 
 
         # index.encode()

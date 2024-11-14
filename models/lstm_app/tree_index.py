@@ -1,3 +1,4 @@
+import time
 from distutils.command.build import build
 
 import numpy as np
@@ -44,32 +45,30 @@ class LSHTreeIndex:
 
     def insert(self, vector, vector_index):
         self.cal_hash_values(vector)
-        hash_value = self.get_new_hash_value(0,0)
+        hash_value = self.get_new_hash_value(1,0, self.first_layer_hash_dim)
         self.set_binary_index(self.root, vector_index, hash_value = hash_value)
 
     def set_binary_index(self, note, vector_index, hash_value = None):
     # first layer
         if note.layer == 0:
-            if len(note.binary_index) == 0:
-                note.binary_index=[{}]
-
             note.binary_index[0][hash_value] = note.children[int(hash_value,2)]
             for child in note.children:
-                self.set_binary_index(child, hash_value, vector_index)
+                self.set_binary_index(child, vector_index)
         else:
             #todo setting as parameterization
-            new_hash_value = self.get_new_hash_value(note.layer, note.id)
+
             if note.is_leaf:
                 note.vectors_indexes.append(vector_index)
             else:
+                new_hash_value = self.get_new_hash_value(note.layer, note.id, self.hash_dim)
                 segment1 = LSHTreeIndex.split_binary_string(new_hash_value,0,4)
                 segment2 = LSHTreeIndex.split_binary_string(new_hash_value,2,6)
                 segment3 = LSHTreeIndex.split_binary_string(new_hash_value,4,8)
                 LSHTreeIndex.init_binary_index(note, segment1, segment2, segment3)
 
-                note.binary_index[0][segment1].append(note.children[int(new_hash_value, 2)])
-                note.binary_index[1][segment2].append(note.children[int(new_hash_value, 2)])
-                note.binary_index[2][segment3].append(note.children[int(new_hash_value, 2)])
+                note.binary_index[0][segment1].add(note.children[int(new_hash_value, 2)])
+                note.binary_index[1][segment2].add(note.children[int(new_hash_value, 2)])
+                note.binary_index[2][segment3].add(note.children[int(new_hash_value, 2)])
                 self.set_binary_index(note.children[int(new_hash_value, 2)], vector_index)
 
     def hash_search(self, all_q_v):
@@ -118,15 +117,11 @@ class LSHTreeIndex:
 
 
     def cal_hash_values(self, vector):
-        matrix_3d = np.tile(vector, (self.tree_layers,
-                                     2 ** (self.first_layer_hash_dim + self.hash_dim * (
-                                                 self.tree_layers - 1)),
-                                     1))
+        self.hash_values  = np.tensordot(vector , self.lsh_database.hash_matrix, axes=([1],[2]))[0]
+        self.hash_values = (self.hash_values > 0).astype(int)
 
-        self.hash_values = np.einsum("ijk,imn->ijm",self.lsh_database.hash_matrix , matrix_3d)
-
-    def get_new_hash_value(self, layer, id):
-        return "".join(str(bit) for bit in self.hash_values[layer, id, :])
+    def get_new_hash_value(self, layer, id, hash_dim):
+        return "".join(str(bit) for bit in self.hash_values[layer-1, id:id+hash_dim])
 
 
     @staticmethod

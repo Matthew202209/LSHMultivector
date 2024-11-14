@@ -1,5 +1,5 @@
 import os
-import pickle
+import dill as pickle
 
 import numpy as np
 import torch
@@ -34,8 +34,10 @@ class LSTMAPPIndex(BaseIndex):
 
     def init_tree_index(self):
         assert self.lsh_database is not None
+        print("Initializing TreeIndex")
         self.tree_index = LSHTreeIndex(self.config, self.lsh_database)
         self.tree_index.build_tree()
+        print("Finished initializing TreeIndex")
 
     def setup(self):
         self.prepare_data()
@@ -96,9 +98,9 @@ class LSTMAPPIndex(BaseIndex):
         if not os.path.exists(save_path):
             os.makedirs(save_path)
 
-        np.save(self.lsh_database.token_reps, os.path.join(save_path, "token_reps.npy"))
-        np.save(self.lsh_database.token_d_ids, os.path.join(save_path, "token_d_ids.npy"))
-        np.save(self.lsh_database.hash_matrix, os.path.join(save_path, "hash_matrix.npy"))
+        np.save(os.path.join(save_path, "token_reps.npy"), self.lsh_database.token_reps)
+        np.save(os.path.join(save_path, "token_d_ids.npy"), self.lsh_database.token_d_ids)
+        np.save(os.path.join(save_path, "hash_matrix.npy"), self.lsh_database.hash_matrix)
 
         with open(os.path.join(save_path, "tree_index.pkl"), "wb") as f:
             pickle.dump(self.tree_index, f)
