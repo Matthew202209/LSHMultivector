@@ -74,31 +74,28 @@ class LSHTreeIndex:
     def hash_search(self, all_q_v):
         all_r_repr, all_r_lens, all_q_lens, all_r_ids= [], [], [], []
         for q_v in all_q_v:
-            q_v = q_v.detach().numpy()
+            q_v = q_v.detach().numpy().reshape(1,-1)
             r_vectors, r_d_ids = self.get_related_d_v(q_v)
+            self.reset_related_d_v_index()
             all_r_repr.append(r_vectors)
             all_r_lens.append(len(r_vectors))
-            all_q_lens.append(len(all_q_v))
-            all_r_ids.append(r_d_ids)
+            all_q_lens.append(1)
+            all_r_ids.append(torch.tensor(r_d_ids).to(torch.int64))
         if len(all_r_repr) > 0:
             all_r_repr = torch.tensor(np.concatenate(all_r_repr, axis = 0)).to(torch.float32)
-            all_r_lens = torch.tensor(all_r_lens).to(torch.float32)
-            all_r_ids = torch.tensor(all_r_ids).to(torch.float32)
         return all_r_repr, all_r_lens, all_q_lens, all_r_ids
 
 
     def get_related_d_v(self, q_v):
-        assert self.hash_values is None
+        assert self.hash_values is not None
         self.cal_hash_values(q_v)
         d_vectors = self.lsh_database.token_reps
         token_d_ids = self.lsh_database.token_d_ids
         first_hash_value = self.get_new_hash_value(1,0, self.first_layer_hash_dim)
-        child_note = self.root.binary_index[0][int(first_hash_value,2)]
+        child_note = self.root.binary_index[0][first_hash_value]
         self.get_d_v_index(child_note)
         assert len(self.related_d_v_index) != 0
         related_d_v_index = list(set(self.related_d_v_index))
-        self.reset_related_d_v_index()
-
         return d_vectors[related_d_v_index], token_d_ids[related_d_v_index]
 
 
@@ -106,10 +103,10 @@ class LSHTreeIndex:
 
     def get_d_v_index(self, note):
         children = []
-        new_hash_value = self.get_new_hash_value(note.layer, note.id, self.hash_dim)
         if note.is_leaf:
             self.related_d_v_index += note.vectors_indexes
         else:
+            new_hash_value = self.get_new_hash_value(note.layer, note.id, self.hash_dim)
             segment1 = LSHTreeIndex.split_binary_string(new_hash_value, 0, 4)
             segment2 = LSHTreeIndex.split_binary_string(new_hash_value, 2, 6)
             segment3 = LSHTreeIndex.split_binary_string(new_hash_value, 4, 8)

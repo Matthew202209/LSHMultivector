@@ -24,7 +24,7 @@ class LSTMAPPSearcher(BaseSearcher):
         self.load_lsh_database(index_dir)
 
     def load_tree_index(self, index_dir):
-        tree_index_path = os.path.join(index_dir, 'tree_index.pt')
+        tree_index_path = os.path.join(index_dir, 'tree_index.pkl')
         with open(tree_index_path, 'rb') as f:
             self.tree_index = pickle.load(f)
 
@@ -38,7 +38,7 @@ class LSTMAPPSearcher(BaseSearcher):
         cls_rep = q_reprs[0][0]
         self.cls_search(cls_rep)
 
-        self.lsh_search(q_reprs[:,1:])
+        self.lsh_search(q_reprs[0,1:])
         top_scores, top_ids = self.select_top_k()
         self.reset_sum_scores()
         return top_scores, top_ids
@@ -59,7 +59,7 @@ class LSTMAPPSearcher(BaseSearcher):
             q_start, ctx_start = 0, 0
             for i, (q_len, ctx_len) in enumerate(zip(all_q_lens, all_r_lens)):
                 q_end, ctx_end = q_start + q_len, ctx_start + ctx_len
-                scores = all_batch_scores[q_start:q_end, ctx_start:ctx_end]
+                scores = all_batch_scores[q_start:q_end, ctx_start:ctx_end][0]
                 ctx_id = all_r_ids[i]
                 torch_scatter.scatter_max(src=scores, index=ctx_id, out=self.max_scores, dim=-1)
                 self.sum_scores += self.max_scores
@@ -80,4 +80,4 @@ class LSTMAPPSearcher(BaseSearcher):
 
     @staticmethod
     def compute_similarity(q_repr, ctx_repr):
-        return torch.matmul(q_repr, ctx_repr.T)
+        return torch.matmul(q_repr, ctx_repr.T).relu()
