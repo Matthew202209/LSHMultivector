@@ -110,9 +110,18 @@ class LSHTreeIndex:
             segment1 = LSHTreeIndex.split_binary_string(new_hash_value, 0, 4)
             segment2 = LSHTreeIndex.split_binary_string(new_hash_value, 2, 6)
             segment3 = LSHTreeIndex.split_binary_string(new_hash_value, 4, 8)
-            children += list(note.binary_index[0][segment1])
-            children += list(note.binary_index[1][segment2])
-            children += list(note.binary_index[2][segment3])
+            try:
+                children += list(note.binary_index[0][segment1])
+            except:
+                pass
+            try:
+                children += list(note.binary_index[1][segment2])
+            except:
+                pass
+            try:
+                children += list(note.binary_index[2][segment3])
+            except:
+                pass
             for child in children:
                 self.get_d_v_index(child)
 

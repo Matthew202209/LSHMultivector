@@ -35,7 +35,7 @@ if __name__ == '__main__':
 
     parser.add_argument("--topk", type=int, default=30)
 
-    parser.add_argument("--tree_layers", type=int, default=3)
+    parser.add_argument("--tree_layers", type=int, default=4)
     parser.add_argument("--first_layer_hash_dim", type=int, default=4)
     parser.add_argument("--hash_dim", type=int, default=8)
     args = parser.parse_args()
@@ -51,7 +51,10 @@ if __name__ == '__main__':
 
     retrieve = LSTMAPPRetrieve(args)
     retrieve.setup()
-    retrieve.retrieve()
+    path = retrieve.retrieve()
+    retrieve.save_perf()
+    evaluation = retrieve.evaluation(path)
+    print(evaluation)
     # eval_results = retrieve.eval_results
     # eval_results["hash_dimmension"] = str(hash_dimmension)
     # eval_list.append(eval_results)

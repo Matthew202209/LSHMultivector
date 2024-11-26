@@ -103,6 +103,7 @@ class HammingAccRetrieve(HammingRetrieve):
             os.makedirs(self.rank_path)
         if not os.path.exists(self.eval_path):
             os.makedirs(self.eval_path)
+
     def save_metadata(self):
         num_tokens = 0
         for bin in self.searcher.hash_bins.values():
