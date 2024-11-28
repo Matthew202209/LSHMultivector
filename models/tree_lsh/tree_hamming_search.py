@@ -8,7 +8,7 @@ from models.base_model import BaseSearcher
 from models.lstm_app.lsh_database import LSHDatabase
 
 
-class LSTMAPPSearcher(BaseSearcher):
+class TreeHammingSearcher(BaseSearcher):
     def __init__(self, config, num_doc):
         super().__init__(config)
         self.tree_index = None
@@ -53,7 +53,7 @@ class LSTMAPPSearcher(BaseSearcher):
         if len(all_r_reprs) > 0:
             # compute similarity
             try:
-                all_batch_scores = LSTMAPPSearcher.compute_similarity(q_reprs, all_r_reprs)
+                all_batch_scores = TreeHammingSearcher.compute_similarity(q_reprs, all_r_reprs)
             except Exception as e:
                 print(e)
             q_start, ctx_start = 0, 0

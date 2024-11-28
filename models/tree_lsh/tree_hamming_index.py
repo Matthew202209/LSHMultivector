@@ -8,12 +8,12 @@ from tqdm import tqdm
 from dataloader.colbert_dataloader import ColbertDataset
 from encoder.colbert_encoder import ColbertEncoder
 from models.base_model import BaseIndex
-from models.lstm_app.lsh_database import LSHDatabase
-from models.lstm_app.tree_index import LSHTreeIndex
+from models.tree_lsh.tree_hamming_lsh_database import TreeHammingDatabase
+from models.tree_lsh.tree_hamming_tree_index import TreeHammingTreeIndex
 from utils.colbert_utils import batch
 
 
-class LSTMAPPIndex(BaseIndex):
+class TreeHammingIndex(BaseIndex):
     def __init__(self, config):
         super().__init__(config)
         self.lsh_database = None
@@ -28,14 +28,14 @@ class LSTMAPPIndex(BaseIndex):
 
     def init_lsh_database(self):
         print("Initializing LSH database")
-        self.lsh_database = LSHDatabase(self.config, self.config.dim)
+        self.lsh_database = TreeHammingDatabase(self.config, self.config.dim)
         self.lsh_database.create_random_hash_matrix()
         print("Finished initializing LSH database")
 
     def init_tree_index(self):
         assert self.lsh_database is not None
         print("Initializing TreeIndex")
-        self.tree_index = LSHTreeIndex(self.config, self.lsh_database)
+        self.tree_index = TreeHammingTreeIndex(self.config, self.lsh_database)
         self.tree_index.build_tree()
         print("Finished initializing TreeIndex")
 
@@ -82,7 +82,7 @@ class LSTMAPPIndex(BaseIndex):
                 token_rep = embs.unsqueeze(0).detach().numpy()
                 self.lsh_database.token_reps.append(token_rep)
                 self.lsh_database.token_d_ids.append(d_id)
-                self.tree_index.insert(token_rep, i)
+                self.tree_index.insert(token_rep, i, d_id)
                 n +=1
                 i +=1
                 if n == self.doclens_list[d_id] - 1:
@@ -94,8 +94,10 @@ class LSTMAPPIndex(BaseIndex):
         self.lsh_database.token_d_ids = np.array(self.lsh_database.token_d_ids)
 
 
+
+
     def save_index(self):
-        save_path = r"{}/index/{}/lstm_app".format(self.config.save_dir, self.config.dataset)
+        save_path = r"{}/index/{}/tree_hamming".format(self.config.save_dir, self.config.dataset)
         if not os.path.exists(save_path):
             os.makedirs(save_path)
 

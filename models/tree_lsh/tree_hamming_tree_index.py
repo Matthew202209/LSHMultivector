@@ -5,7 +5,8 @@ import numpy as np
 import torch
 from tqdm import tqdm
 
-from models.lstm_app.lsh_database import LSHDatabase
+from models.tree_lsh.tree_hamming_lsh_database import TreeHammingDatabase
+
 
 class TreeNote:
     def __init__(self, layer, id):
@@ -20,8 +21,8 @@ class TreeNote:
     def check_document_exist(self, reference_set):
         return not self.document_id.isdisjoint(reference_set)
 
-class LSHTreeIndex:
-    def __init__(self, config, lsh_database:LSHDatabase):
+class TreeHammingTreeIndex:
+    def __init__(self, config, lsh_database:TreeHammingDatabase):
         self.root = TreeNote(0,0)
         self.lsh_database = lsh_database
         self.tree_layers = config.tree_layers
@@ -31,18 +32,14 @@ class LSHTreeIndex:
         self.related_d_v_index = []
 
     def build_tree(self):
-    # first layer
-        for id in tqdm(range(2**self.hash_dim)):
-            this_note = TreeNote(2, id)
-            self.build_other_layer(this_note, 3, id)
-            self.root.children.append(this_note)
+        self.build_next_layer(self.root, 1, 0)
 
-    def build_other_layer(self, note, layer, father_id):
+    def build_next_layer(self, note, layer, father_id):
         for id in range(2**self.hash_dim):
-            this_id = id+father_id*2**self.hash_dim
+            this_id = father_id *2**((layer-1)*self.hash_dim) + id
             new_note = TreeNote(layer, this_id)
-            if layer != self.tree_layers:
-                self.build_other_layer(new_note, layer+1, this_id)
+            if layer != self.tree_layers-1:
+                self.build_next_layer(new_note, layer+1, this_id)
                 note.children.append(new_note)
             else:
                 new_note.is_leaf = True
@@ -58,15 +55,16 @@ class LSHTreeIndex:
             note.vectors_indexes.append(vector_index)
         else:
             new_hash_value = self.get_new_hash_value(note.layer, note.id, self.hash_dim)
-            segment1 = LSHTreeIndex.split_binary_string(new_hash_value,0,4)
-            segment2 = LSHTreeIndex.split_binary_string(new_hash_value,2,6)
-            segment3 = LSHTreeIndex.split_binary_string(new_hash_value,4,8)
-            LSHTreeIndex.init_binary_index(note, segment1, segment2, segment3)
+            a = int(new_hash_value, 2)
+            segment1 = TreeHammingTreeIndex.split_binary_string(new_hash_value,0,4)
+            segment2 = TreeHammingTreeIndex.split_binary_string(new_hash_value,2,6)
+            segment3 = TreeHammingTreeIndex.split_binary_string(new_hash_value,4,8)
+            TreeHammingTreeIndex.init_binary_index(note, segment1, segment2, segment3)
 
             note.binary_index[0][segment1].add(note.children[int(new_hash_value, 2)])
             note.binary_index[1][segment2].add(note.children[int(new_hash_value, 2)])
             note.binary_index[2][segment3].add(note.children[int(new_hash_value, 2)])
-            self.set_binary_index(note.children[int(new_hash_value, 2)], vector_index)
+            self.set_binary_index(note.children[int(new_hash_value, 2)], vector_index, document_id = document_id)
 
     def hash_search(self, all_q_v, candidate_d_list):
         all_r_repr, all_r_lens, all_q_lens, all_r_ids= [], [], [], []
@@ -99,9 +97,9 @@ class LSHTreeIndex:
             self.related_d_v_index += note.vectors_indexes
         else:
             new_hash_value = self.get_new_hash_value(note.layer, note.id, self.hash_dim)
-            segment1 = LSHTreeIndex.split_binary_string(new_hash_value, 0, 4)
-            segment2 = LSHTreeIndex.split_binary_string(new_hash_value, 2, 6)
-            segment3 = LSHTreeIndex.split_binary_string(new_hash_value, 4, 8)
+            segment1 = TreeHammingTreeIndex.split_binary_string(new_hash_value, 0, 4)
+            segment2 = TreeHammingTreeIndex.split_binary_string(new_hash_value, 2, 6)
+            segment3 = TreeHammingTreeIndex.split_binary_string(new_hash_value, 4, 8)
             try:
                 children += list(note.binary_index[0][segment1])
             except:
@@ -125,7 +123,7 @@ class LSHTreeIndex:
         self.hash_values = (self.hash_values > 0).astype(int)
 
     def get_new_hash_value(self, layer, id, hash_dim):
-        return "".join(str(bit) for bit in self.hash_values[layer-1, id:id+hash_dim])
+        return "".join(str(bit) for bit in self.hash_values[layer, id*hash_dim:id * hash_dim+hash_dim])
 
     def reset_related_d_v_index(self):
         self.related_d_v_index = []

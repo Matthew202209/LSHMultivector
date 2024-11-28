@@ -12,7 +12,7 @@ from tqdm import tqdm
 from dataloader.colbert_dataloader import ColbertDataset
 from encoder.colbert_encoder import ColbertEncoder
 from models.base_model import BaseRetrieve
-from models.lstm_app.lstm_app_search import LSTMAPPSearcher
+from models.tree_lsh.tree_hamming_search import TreeHammingSearcher
 from utils.retrieve_utils import create_this_perf
 
 columns = ["encode_cycles", "encode_instructions",
@@ -25,7 +25,7 @@ columns = ["encode_cycles", "encode_instructions",
            "retrieval_branch_misses", "retrieval_task_clock"]
 
 
-class LSTMAPPRetrieve(BaseRetrieve):
+class TreeHammingRetrieve(BaseRetrieve):
     def __init__(self, config):
         super().__init__(config)
         self.perf_df = None
@@ -49,7 +49,7 @@ class LSTMAPPRetrieve(BaseRetrieve):
         self.context_encoder = ColbertEncoder(self.config)
 
     def prepare_searcher(self):
-        self.searcher = LSTMAPPSearcher(self.config, len(self.corpus.corpus_list))
+        self.searcher = TreeHammingSearcher(self.config, len(self.corpus.corpus_list))
         self.searcher.prepare_index()
 
 
