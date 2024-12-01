@@ -112,10 +112,12 @@ class TreeHammingTreeIndex:
                 children += list(note.binary_index[2][segment3])
             except:
                 pass
+            # for child in children:
+            #     if child.check_document_exist(candidate_d_list):
+            #         self.get_d_v_index(child, candidate_d_list)
+            #     continue
             for child in children:
-                if child.check_document_exist(candidate_d_list):
-                    self.get_d_v_index(child, candidate_d_list)
-                continue
+                self.get_d_v_index(child, candidate_d_list)
 
 
     def cal_hash_values(self, vector):

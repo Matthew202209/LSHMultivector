@@ -19,7 +19,7 @@ class TreeHammingSearcher(BaseSearcher):
         self.max_scores = torch.zeros((self.num_doc,), dtype=torch.float32)
 
     def prepare_index(self):
-        index_dir = r"{}/index/{}/lstm_app".format(self.config.save_dir, self.config.dataset)
+        index_dir = r"{}/index/{}/tree_hamming".format(self.config.save_dir, self.config.dataset)
         self.load_tree_index(index_dir)
         self.load_lsh_database(index_dir)
 
@@ -37,9 +37,13 @@ class TreeHammingSearcher(BaseSearcher):
         self.reset_sum_scores()
         cls_rep = q_reprs[0][0]
         self.cls_search(cls_rep)
-
-        self.lsh_search(q_reprs[0,1:])
-        top_scores, top_ids = self.select_top_k()
+        _, coarse_top_ids = self.select_top_k(self.config.coarse_top_k)
+        indices_to_keep = coarse_top_ids[0].detach().cpu().numpy().tolist()
+        # mask = torch.zeros_like(self.sum_scores, dtype=torch.bool)
+        # mask[:, indices_to_keep] = True
+        # self.sum_scores = self.sum_scores * mask
+        self.lsh_search(q_reprs[0,1:], indices_to_keep)
+        top_scores, top_ids = self.select_top_k(self.topk)
         self.reset_sum_scores()
         return top_scores, top_ids
 
@@ -48,8 +52,8 @@ class TreeHammingSearcher(BaseSearcher):
         d_cls_reps = torch.tensor(self.lsh_database.cls_reps).to(torch.float32).to("cpu")
         self.sum_scores = torch.matmul(cls_rep, d_cls_reps.T).unsqueeze(0)
 
-    def lsh_search(self, q_reprs):
-        all_r_reprs, all_r_lens, all_q_lens, all_r_ids = self.tree_index.hash_search(q_reprs)
+    def lsh_search(self, q_reprs, indices_to_keep):
+        all_r_reprs, all_r_lens, all_q_lens, all_r_ids = self.tree_index.hash_search(q_reprs, indices_to_keep)
         if len(all_r_reprs) > 0:
             # compute similarity
             try:
@@ -70,8 +74,8 @@ class TreeHammingSearcher(BaseSearcher):
 
 
 
-    def select_top_k(self):
-        top_scores, top_ids = self.sum_scores.topk(self.topk, dim=1)
+    def select_top_k(self, top_k):
+        top_scores, top_ids = self.sum_scores.topk(top_k, dim=1)
         return top_scores, top_ids
 
     def reset_sum_scores(self):
