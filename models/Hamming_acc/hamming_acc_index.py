@@ -1,5 +1,8 @@
 import itertools
+import math
 import os
+
+import numpy as np
 
 from models.Hamming.hamming_index import HammingIndex, Matrixing
 from tqdm import tqdm
@@ -50,7 +53,13 @@ class HammingAccIndex(HammingIndex):
 
 
     def hamming_hashing(self):
-        self.hash_matrix = torch.rand(self.token_reps.shape[1], self.config.hash_dimmension)
+        if self.config.version == "v1":
+            self.hash_matrix = torch.rand(self.token_reps.shape[1], self.config.hash_dimmension)
+            print(1)
+        elif self.config.version == "v2":
+            self.hash_matrix = create_random_hash_vectors(int(self.config.hash_dimmension/2), self.token_reps.shape[1])
+            self.hash_matrix = torch.tensor(self.hash_matrix).to("cpu").to(torch.float32).T
+
 
         hash_value_matrix = self.token_reps @ self.hash_matrix
         hamming_matrix = torch.where(hash_value_matrix > 0, torch.tensor(1), torch.tensor(0))
@@ -70,11 +79,14 @@ class HammingAccIndex(HammingIndex):
             self.hash_ivd[hash_value] = generate_hamming_codes(hash_value, self.config.hamming_threshold)
 
 
-
-
-
     def save_index(self):
-        save_path = r"{}/index/{}/hamming_acc/{}".format(self.config.save_dir, self.config.dataset, self.config.hash_dimmension)
+
+        if self.config.version == "v1":
+            save_path = r"{}/index/{}/hamming_acc_v1/{}".format(self.config.save_dir, self.config.dataset, self.config.hash_dimmension)
+        elif self.config.version == "v2":
+            save_path = r"{}/index/{}/hamming_acc_v2/{}".format(self.config.save_dir, self.config.dataset, self.config.hash_dimmension)
+
+        # save_path = r"{}/index/{}/hamming_acc/{}".format(self.config.save_dir, self.config.dataset, self.config.hash_dimmension)
         if not os.path.exists(save_path):
             os.makedirs(save_path)
 
@@ -88,3 +100,32 @@ class HammingAccIndex(HammingIndex):
 
 def generate_binary_numbers(n):
     return ["".join(bits) for bits in itertools.product("01", repeat=n)]
+
+
+def create_random_hash_vectors(num_vectors:int, token_reps_dim: int):
+    hash_vectors = np.zeros((num_vectors*2, token_reps_dim))
+    for i in range(num_vectors):
+        v1 = np.random.choice([-1, 1], size=token_reps_dim)/math.sqrt(token_reps_dim)
+        v2 = find_orthogonal_unit_vector(v1, token_reps_dim)
+        hash_vectors[2 * i] = v1
+        hash_vectors[2 * i +1] = v2
+    A = np.random.randn(token_reps_dim, token_reps_dim)
+
+    # 进行QR分解
+    Q, _ = np.linalg.qr(A)
+    return hash_vectors @ Q
+
+def find_orthogonal_unit_vector(u, token_reps_dim):
+    # 确保u是一个numpy数组
+    u = np.array(u)
+    # 生成一个随机的128维向量
+    v = np.random.rand(token_reps_dim)
+    # 标准化v
+    v = v / np.linalg.norm(v)
+    # 计算v在u上的投影
+    projection = np.dot(v, u) * u
+    # 从v中减去投影，得到正交向量
+    v_orthogonal = v - projection
+    # 标准化正交向量
+    v_orthogonal = v_orthogonal / np.linalg.norm(v_orthogonal)
+    return v_orthogonal

@@ -1,5 +1,6 @@
 import torch
 import torch_scatter
+from numpy.distutils.command.config import config
 from tqdm import tqdm
 from bitstring import BitArray
 from models.Hamming.hamming_search import HammingSearcher
@@ -10,8 +11,12 @@ class HammingAccSearcher(HammingSearcher):
         super().__init__(config, num_doc)
 
     def prepare_index(self):
-        index_dir = r"{}/index/{}/hamming_acc/{}".format(self.config.save_dir, self.config.dataset,
-                                                         str(self.config.hash_dimmension))
+        if self.config.version == "v1":
+            index_dir = r"{}/index/{}/hamming_acc_v1/{}".format(self.config.save_dir, self.config.dataset,
+                                                             str(self.config.hash_dimmension))
+        elif self.config.version == "v2":
+            index_dir = r"{}/index/{}/hamming_acc_v2/{}".format(self.config.save_dir, self.config.dataset,
+                                                             str(self.config.hash_dimmension))
         self.cls_reps = torch.load(r"{}/{}".format(index_dir, 'cls_reps.pt'), map_location="cpu")
         self.token_labels = torch.load(r"{}/{}".format(index_dir, 'token_labels.pt'), map_location="cpu")
         self.hash_matrix = torch.load(r"{}/{}".format(index_dir, 'hash_matrix.pt'), map_location="cpu")
@@ -23,8 +28,8 @@ class HammingAccSearcher(HammingSearcher):
         hamming_matrix = self.cal_hash_value(embeddings).squeeze()
         for i, hamming_key in enumerate(hamming_matrix):
             hash_value = "".join(hamming_key.numpy().astype(str))
-            # if hash_value not in list(self.hash_bins.keys()):
-            #     continue
+            if hash_value not in list(self.hash_bins.keys()):
+                continue
             doc_token_reps, token_pid = self.find_similar_bins(hash_value)
             token_score = torch.matmul(embeddings[0][i], doc_token_reps.T).relu_()
             token_pid_tensor = torch.Tensor(token_pid).to(torch.int64)
@@ -44,6 +49,7 @@ class HammingAccSearcher(HammingSearcher):
             token_pid += self.hash_bins[key]["dense_repr"][1]
         doc_token_reps = torch.cat(doc_token_reps, dim=0)
         return doc_token_reps, token_pid
+
 
     @staticmethod
     def hamming_distance(bits1,bits2):

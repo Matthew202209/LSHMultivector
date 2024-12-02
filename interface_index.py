@@ -25,19 +25,27 @@ if __name__ == '__main__':
     parser.add_argument("--query_token", type=str, default="[Q]")
     parser.add_argument("--query_token_id", type=str, default="[unused0]")
     parser.add_argument("--hamming_threshold", type=int, default=2)
-    parser.add_argument("--hash_dimmension", type=int, default=32)
+    parser.add_argument("--hash_dimmension", type=int, default=6)
+    parser.add_argument("--version", type=str, default="v1")
 
     args = parser.parse_args()
 
     for dataset in ["nfcorpus"]:
-        args.dataset = dataset
-        print(args.dataset)
-        index = HammingAccIndex(args)
-        index.setup()
-        index.encode()
-        index.indexing()
-        for hash_dimmension in range(5,17):
-            args.hash_dimmension = hash_dimmension
-            print(args.hash_dimmension)
-            index.fit()
+        for version in ["v1"]:
+            for hash_dimmension in [10]:
+                args.dataset = dataset
+                args.version = version
+                args.hash_dimmension = hash_dimmension
+                print(args.dataset)
+                print(args.hash_dimmension)
+                print(args.version)
+                index = HammingAccIndex(args)
+                index.setup()
+                index.encode()
+                index.indexing()
+                index.fit()
+        # for hash_dimmension in range(5,17):
+        #     args.hash_dimmension = hash_dimmension
+        #     print(args.hash_dimmension)
+        #     index.fit()
 
