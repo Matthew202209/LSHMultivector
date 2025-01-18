@@ -62,8 +62,6 @@ class TreeHammingTreeIndex:
             note.binary_index[0][segment1].add(note.children[int(new_hash_value, 2)])
             note.binary_index[1][segment2].add(note.children[int(new_hash_value, 2)])
             note.binary_index[2][segment3].add(note.children[int(new_hash_value, 2)])
-
-
             self.set_binary_index(note.children[int(new_hash_value, 2)], vector_index, document_id = document_id)
 
     def hash_search(self, all_q_v, candidate_d_list):
