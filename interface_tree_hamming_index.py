@@ -26,18 +26,16 @@ if __name__ == '__main__':
     parser.add_argument("--query_token", type=str, default="[Q]")
     parser.add_argument("--query_token_id", type=str, default="[unused0]")
     parser.add_argument("--hamming_threshold", type=int, default=2)
-    parser.add_argument("--hash_dimmension", type=int, default=32)
-
-    parser.add_argument("--tree_layers", type=int, default=3)
-    parser.add_argument("--first_layer_hash_dim", type=int, default=4)
-    parser.add_argument("--hash_dim", type=int, default=8)
+    parser.add_argument("--version", type=str, default="v2")
+    parser.add_argument("--tree_layers", type=int, default=4)
+    parser.add_argument("--hash_dim", type=int, default=6)
 
 
 
 
     args = parser.parse_args()
 
-    for dataset in ["nfcorpus"]:
+    for dataset in ["fiqa"]:
         args.dataset = dataset
         print(args.dataset)
         index = TreeHammingIndex(args)

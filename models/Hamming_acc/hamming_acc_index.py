@@ -53,10 +53,10 @@ class HammingAccIndex(HammingIndex):
 
 
     def hamming_hashing(self):
-        if self.config.version == "v1":
+        if self.config.version == "v1" or "v3":
             self.hash_matrix = torch.rand(self.token_reps.shape[1], self.config.hash_dimmension)
             print(1)
-        elif self.config.version == "v2":
+        elif self.config.version == "v2" or "v4":
             self.hash_matrix = create_random_hash_vectors(int(self.config.hash_dimmension/2), self.token_reps.shape[1])
             self.hash_matrix = torch.tensor(self.hash_matrix).to("cpu").to(torch.float32).T
 
@@ -85,6 +85,11 @@ class HammingAccIndex(HammingIndex):
             save_path = r"{}/index/{}/hamming_acc_v1/{}".format(self.config.save_dir, self.config.dataset, self.config.hash_dimmension)
         elif self.config.version == "v2":
             save_path = r"{}/index/{}/hamming_acc_v2/{}".format(self.config.save_dir, self.config.dataset, self.config.hash_dimmension)
+        elif self.config.version == "v3":
+            save_path = r"{}/index/{}/hamming_acc_v3/{}".format(self.config.save_dir, self.config.dataset, self.config.num)
+        elif self.config.version == "v4":
+            save_path = r"{}/index/{}/hamming_acc_v4/{}".format(self.config.save_dir, self.config.dataset,
+                                                            self.config.num)
 
         # save_path = r"{}/index/{}/hamming_acc/{}".format(self.config.save_dir, self.config.dataset, self.config.hash_dimmension)
         if not os.path.exists(save_path):

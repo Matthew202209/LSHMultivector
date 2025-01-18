@@ -4,8 +4,7 @@ import os
 import pandas as pd
 from ir_measures import *
 
-from models.lstm_app.lstm_app_retrieve import LSTMAPPRetrieve
-from models.tree_lsh.tree_hamming_retrieve import TreeHammingRetrieve
+from models.ann_mvdr.ann_mvdr_retrieve import AnnMvdrRetrieve
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -34,15 +33,12 @@ if __name__ == '__main__':
     parser.add_argument("--query_token_id", type=str, default="[unused0]")
     parser.add_argument("--measure", type=list, default=[nDCG @ 10, RR @ 10, Success @ 10])
 
-    parser.add_argument("--coarse_top_k", type=int, default=300)
-
     parser.add_argument("--topk", type=int, default=30)
-    parser.add_argument("--version", type=str, default="v2")
-    parser.add_argument("--tree_layers", type=int, default=4)
-    parser.add_argument("--hash_dim", type=int, default=6)
+    parser.add_argument("--token_top_k", type=int, default=10000)
+    parser.add_argument("--ann_type", type=str, default=r"IndexIVFPQ")
     args = parser.parse_args()
 
-    save_dir = r"{}/lstm_app/{}".format(args.results_save_to, args.dataset)
+    save_dir = r"{}/ann_mvdr/{}".format(args.results_save_to, args.dataset)
     eval_path = r"{}/{}".format(save_dir, "eval_results")
 
 
@@ -51,18 +47,17 @@ if __name__ == '__main__':
         os.makedirs(eval_path)
     eval_list = []
 
-    retrieve = TreeHammingRetrieve(args)
+    retrieve = AnnMvdrRetrieve(args)
     retrieve.setup()
     path = retrieve.retrieve()
     retrieve.save_perf()
     evaluation = retrieve.evaluation(path)
-    eval_list.append(evaluation)
     print(evaluation)
     # eval_results = retrieve.eval_results
     # eval_results["hash_dimmension"] = str(hash_dimmension)
     # eval_list.append(eval_results)
-
-    eval_df = pd.DataFrame(eval_list)
-    eval_df.to_csv(r"{}/eval.csv".format(eval_path), index=False)
+    #
+    # eval_df = pd.DataFrame(eval_list)
+    # eval_df.to_csv(r"{}/eval.csv".format(eval_path), index=False)
 
 

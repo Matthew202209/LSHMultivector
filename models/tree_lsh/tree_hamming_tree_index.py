@@ -26,7 +26,6 @@ class TreeHammingTreeIndex:
         self.root = TreeNote(0,0)
         self.lsh_database = lsh_database
         self.tree_layers = config.tree_layers
-        self.first_layer_hash_dim = config.first_layer_hash_dim
         self.hash_dim = config.hash_dim
         self.hash_values = None
         self.related_d_v_index = []
@@ -55,15 +54,16 @@ class TreeHammingTreeIndex:
             note.vectors_indexes.append(vector_index)
         else:
             new_hash_value = self.get_new_hash_value(note.layer, note.id, self.hash_dim)
-            a = int(new_hash_value, 2)
             segment1 = TreeHammingTreeIndex.split_binary_string(new_hash_value,0,4)
             segment2 = TreeHammingTreeIndex.split_binary_string(new_hash_value,2,6)
-            segment3 = TreeHammingTreeIndex.split_binary_string(new_hash_value,4,8)
+            segment3 = TreeHammingTreeIndex.get_binary_string(new_hash_value, 0, 1, 4, 5)
             TreeHammingTreeIndex.init_binary_index(note, segment1, segment2, segment3)
-
+            # TreeHammingTreeIndex.init_binary_index(note, segment1, segment2)
             note.binary_index[0][segment1].add(note.children[int(new_hash_value, 2)])
             note.binary_index[1][segment2].add(note.children[int(new_hash_value, 2)])
             note.binary_index[2][segment3].add(note.children[int(new_hash_value, 2)])
+
+
             self.set_binary_index(note.children[int(new_hash_value, 2)], vector_index, document_id = document_id)
 
     def hash_search(self, all_q_v, candidate_d_list):
@@ -84,12 +84,12 @@ class TreeHammingTreeIndex:
     def get_related_d_v(self, q_v, candidate_d_list):
         assert self.hash_values is not None
         self.cal_hash_values(q_v)
-        d_vectors = self.lsh_database.token_reps
-        token_d_ids = self.lsh_database.token_d_ids
+        # d_vectors = self.lsh_database.token_reps
+        # token_d_ids = self.lsh_database.token_d_ids
         self.get_d_v_index(self.root, candidate_d_list)
         assert len(self.related_d_v_index) != 0
         related_d_v_index = list(set(self.related_d_v_index))
-        return d_vectors[related_d_v_index], token_d_ids[related_d_v_index]
+        return self.lsh_database.token_reps[related_d_v_index], self.lsh_database.token_d_ids[related_d_v_index]
 
     def get_d_v_index(self, note, candidate_d_list):
         children = []
@@ -99,7 +99,7 @@ class TreeHammingTreeIndex:
             new_hash_value = self.get_new_hash_value(note.layer, note.id, self.hash_dim)
             segment1 = TreeHammingTreeIndex.split_binary_string(new_hash_value, 0, 4)
             segment2 = TreeHammingTreeIndex.split_binary_string(new_hash_value, 2, 6)
-            segment3 = TreeHammingTreeIndex.split_binary_string(new_hash_value, 4, 8)
+            segment3 = TreeHammingTreeIndex.get_binary_string(new_hash_value, 0, 1, 4,5)
             try:
                 children += list(note.binary_index[0][segment1])
             except:
@@ -115,7 +115,8 @@ class TreeHammingTreeIndex:
             # for child in children:
             #     if child.check_document_exist(candidate_d_list):
             #         self.get_d_v_index(child, candidate_d_list)
-            #     continue
+            #     else:
+            #         continue
             for child in children:
                 self.get_d_v_index(child, candidate_d_list)
 
@@ -133,6 +134,15 @@ class TreeHammingTreeIndex:
     @staticmethod
     def split_binary_string(binary_string, start_index, end_index):
         return binary_string[start_index:end_index]
+
+    @staticmethod
+    def get_binary_string(binary_string, i1,i2,i3,i4):
+        new_binary_string = "".join([str(binary_string[i1]), str(binary_string[i2]),
+                                     str(binary_string[i3]), str(binary_string[i4])])
+
+
+        return new_binary_string
+
 
     @staticmethod
     def init_binary_index(note, segment1, segment2, segment3):

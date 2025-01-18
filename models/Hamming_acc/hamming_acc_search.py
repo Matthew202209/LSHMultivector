@@ -17,6 +17,13 @@ class HammingAccSearcher(HammingSearcher):
         elif self.config.version == "v2":
             index_dir = r"{}/index/{}/hamming_acc_v2/{}".format(self.config.save_dir, self.config.dataset,
                                                              str(self.config.hash_dimmension))
+        elif self.config.version == "v3":
+            index_dir = r"{}/index/{}/hamming_acc_v1/{}".format(self.config.save_dir, self.config.dataset,
+                                                                str(self.config.num))
+        elif self.config.version == "v4":
+            index_dir = r"{}/index/{}/hamming_acc_v2/{}".format(self.config.save_dir, self.config.dataset,
+                                                                str(self.config.num))
+
         self.cls_reps = torch.load(r"{}/{}".format(index_dir, 'cls_reps.pt'), map_location="cpu")
         self.token_labels = torch.load(r"{}/{}".format(index_dir, 'token_labels.pt'), map_location="cpu")
         self.hash_matrix = torch.load(r"{}/{}".format(index_dir, 'hash_matrix.pt'), map_location="cpu")

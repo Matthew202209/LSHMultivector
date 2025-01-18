@@ -21,7 +21,10 @@ class TreeHammingDatabase:
         assert self.config.hash_dim % 2 == 0
         for i in range(self.config.tree_layers-1):
             dim = 2**(self.config.hash_dim*i)*self.config.hash_dim
-            a = create_random_hash_vectors(int(dim), self.token_reps_dim)
+            if self.config.version == "v1":
+                a = np.random.normal(loc=0, scale=1, size=(int(dim), self.token_reps_dim))
+            elif self.config.version == "v2":
+                a = create_random_hash_vectors(int(dim), self.token_reps_dim)
             self.hash_matrix[i, 0:dim, :] = a
 
     def save_index(self, save_path):

@@ -1,10 +1,7 @@
 import argparse
 
-from models.Hamming.hamming_index import HammingIndex
-from models.Hamming_acc.hamming_acc_index import HammingAccIndex
-from models.all.all_index import AllIndex
+from models.ann_mvdr.ann_mvdr_index import AnnMvdrIndex
 
-from bitstring import BitArray
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--checkpoints_dir", type=str, default=r"./checkpoints/colbertv2.0")
@@ -25,26 +22,37 @@ if __name__ == '__main__':
     parser.add_argument("--query_token", type=str, default="[Q]")
     parser.add_argument("--query_token_id", type=str, default="[unused0]")
     parser.add_argument("--hamming_threshold", type=int, default=2)
-    parser.add_argument("--hash_dimmension", type=int, default=6)
-    parser.add_argument("--version", type=str, default="v1")
-    parser.add_argument("--num", type=int, default=0)
+    parser.add_argument("--hash_dimmension", type=int, default=32)
+
+    parser.add_argument("--tree_layers", type=int, default=4)
+    parser.add_argument("--first_layer_hash_dim", type=int, default=4)
+    parser.add_argument("--hash_dim", type=int, default=8)
+
+    parser.add_argument("--ann_type", type=str, default=r"IndexIVFPQ")
+    parser.add_argument("--n_bits_lsh", type=int, default=32)
+
+    parser.add_argument("--max_layer", type=int, default=32)
+    parser.add_argument("--num_neighbor", type=int, default=32)
+
+    parser.add_argument("--m", type=int, default=16)
+    parser.add_argument("--nlist", type=int, default=100)
+    parser.add_argument("--n_bits_fpq", type=int, default=8)
+
 
     args = parser.parse_args()
 
     for dataset in ["nfcorpus"]:
-        for version in ["v3","v4"]:
-            for num in range(30):
-                args.dataset = dataset
-                args.version = version
-                args.num = num
-                print(args.dataset)
-                print(args.num)
-                print(args.version)
-                index = HammingAccIndex(args)
-                index.setup()
-                index.encode()
-                index.indexing()
-                index.fit()
+        args.dataset = dataset
+        print(args.dataset)
+        index = AnnMvdrIndex(args)
+        index.setup()
+        index.encode()
+        index.indexing()
+        index.save_index()
+
+
+        # index.encode()
+        # index.indexing()
         # for hash_dimmension in range(5,17):
         #     args.hash_dimmension = hash_dimmension
         #     print(args.hash_dimmension)

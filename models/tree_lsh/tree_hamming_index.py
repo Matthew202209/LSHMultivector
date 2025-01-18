@@ -97,7 +97,10 @@ class TreeHammingIndex(BaseIndex):
 
 
     def save_index(self):
-        save_path = r"{}/index/{}/tree_hamming".format(self.config.save_dir, self.config.dataset)
+        if self.config.version == "v1":
+            save_path = r"{}/index/{}/tree_hamming_v1".format(self.config.save_dir, self.config.dataset)
+        elif self.config.version == "v2":
+            save_path = r"{}/index/{}/tree_hamming_v2".format(self.config.save_dir, self.config.dataset)
         if not os.path.exists(save_path):
             os.makedirs(save_path)
 
