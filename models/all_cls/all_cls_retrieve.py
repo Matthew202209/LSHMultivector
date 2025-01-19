@@ -12,9 +12,10 @@ from tqdm import tqdm
 from dataloader.colbert_dataloader import ColbertDataset
 from encoder.colbert_encoder import ColbertEncoder
 from models.all.all_search import AllSearcher
+from models.all_cls.all_cls_search import AllClsSearcher
 from models.base_model import BaseRetrieve
 
-class AllRetrieve(BaseRetrieve):
+class AllClsRetrieve(BaseRetrieve):
     def __init__(self, config):
         super().__init__(config)
 
@@ -37,7 +38,7 @@ class AllRetrieve(BaseRetrieve):
         self.context_encoder = ColbertEncoder(self.config)
 
     def prepare_searcher(self):
-        self.searcher = AllSearcher(self.config, len(self.corpus.corpus_list))
+        self.searcher = AllClsSearcher(self.config, len(self.corpus.corpus_list))
         self.searcher.prepare_index()
 
     def retrieve(self):
@@ -84,8 +85,7 @@ class AllRetrieve(BaseRetrieve):
                 for j in range(len(scores)):
                     fout.write(f'{q_id} 0 {indices[j]} {j} {scores[j]} run\n')
         return path
-    def show_doc_embedding(self, idx):
-        self.searcher.show_doc_embedding(idx)
+
     def _create_save_path(self):
         save_dir = r"{}/all/{}".format(self.config.results_save_to, self.config.dataset)
         if not os.path.exists(save_dir):

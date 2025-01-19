@@ -9,7 +9,7 @@ from models.base_model import BaseSearcher
 class HammingSearcher(BaseSearcher):
     def __init__(self, config, num_doc):
         super().__init__(config)
-        self.hamming_threshold = config.hamming_threshold
+        # self.hamming_threshold = config.hamming_threshold
         self.cls_reps = None
         self.token_labels = None
         self.hash_matrix = None

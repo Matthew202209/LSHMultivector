@@ -15,6 +15,9 @@ class AllSearcher(BaseSearcher):
         self.sum_scores = torch.zeros((1, self.num_doc,), dtype=torch.float32)
         self.max_scores = torch.zeros((self.num_doc,), dtype=torch.float32)
 
+    def show_doc_embedding(self, int):
+        print(self.all_embs[int])
+
     def prepare_index(self):
         index_dir = r"{}/index/{}/all".format(self.config.save_dir, self.config.dataset)
         self.all_embs = torch.load(r"{}/{}".format(index_dir, 'all_embs.pt'), map_location="cpu")

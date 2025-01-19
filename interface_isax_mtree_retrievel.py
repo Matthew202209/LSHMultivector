@@ -5,16 +5,17 @@ import pandas as pd
 from ir_measures import *
 
 from models.ann_mvdr.ann_mvdr_retrieve import AnnMvdrRetrieve
+from models.isax_MTree.isax_MTree_retrieve import IsaxMTreeRetrieve
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--checkpoints_dir", type=str, default=r"./checkpoints/colbertv2.0")
     parser.add_argument("--model_name", type=str, default=r"./checkpoints/colbertv2.0")
     parser.add_argument("--root_dir", type=str, default=r"./data")
-    parser.add_argument("--save_dir", type=str, default=r"/home/chunming/data/chunming/projects/LSHMultivector")
+    parser.add_argument("--save_dir", type=str, default=r"/home/chunming/data/chunming/projects/LSHMultivector/index")
     parser.add_argument("--results_save_to", type=str, default=r"./results")
 
-    parser.add_argument("--dataset", type=str, default=r"nfcorpus")
+    parser.add_argument("--dataset", type=str, default=r"scifact")
     parser.add_argument("--device", type=str, default=r"cpu")
 
 
@@ -34,8 +35,20 @@ if __name__ == '__main__':
     parser.add_argument("--measure", type=list, default=[nDCG @ 10, RR @ 10, Success @ 10])
 
     parser.add_argument("--topk", type=int, default=30)
-    parser.add_argument("--token_top_k", type=int, default=10000)
-    parser.add_argument("--ann_type", type=str, default=r"IndexLSH")
+    parser.add_argument("--KNN", type=int, default=100000)
+
+    parser.add_argument("--low_dim", type=int, default=16)
+    parser.add_argument("--sample_p", type=float, default=0.3)
+    parser.add_argument("--sax_alphabet_cardinality", type=int, default=5)
+    parser.add_argument("--pivot_num", type=int, default=6)
+    parser.add_argument("--pivot_random_count", type=int, default=30)
+    parser.add_argument("--c_appro", type=float, default=2)
+    parser.add_argument("--alpha1", type=float, default=0.01)
+    parser.add_argument("--m_num", type=int, default=10)
+    parser.add_argument("--mleaf", type=int, default=5)
+    parser.add_argument("--search_Radius", type=int, default=5)
+    parser.add_argument("--nlist", type=int, default=100)
+    parser.add_argument("--n_bits_fpq", type=int, default=8)
     args = parser.parse_args()
 
     save_dir = r"{}/ann_mvdr/{}".format(args.results_save_to, args.dataset)
@@ -47,7 +60,7 @@ if __name__ == '__main__':
         os.makedirs(eval_path)
     eval_list = []
 
-    retrieve = AnnMvdrRetrieve(args)
+    retrieve = IsaxMTreeRetrieve(args)
     retrieve.setup()
     path = retrieve.retrieve()
     retrieve.save_perf()

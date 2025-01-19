@@ -19,8 +19,8 @@ class IsaxMtreeIndex(BaseIndex):
         self.cls_reps = []
         self.token_labels = []
         self.token_reps = []
-        self.token_d_ids = []
         self.token_reps_expansion = None
+        self.token_d_ids = []
 
     def prepare_data(self):
         corpus_path = r"{}/corpus/{}.jsonl".format(self.config.root_dir, self.config.dataset)
@@ -80,7 +80,6 @@ class IsaxMtreeIndex(BaseIndex):
             self.embs_list.append(embs_)
 
     def isax_mtree_create(self):
-
         self.vector_db.inputDocTokenRepres(self.token_reps_expansion)
         self.vector_db.iSaxProcess()
         self.vector_db.mTreeIndexConstruct()

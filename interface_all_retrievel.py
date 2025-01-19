@@ -2,9 +2,13 @@ import argparse
 import os
 
 import pandas as pd
+
+from models.Hamming.hamming_retrieve import HammingRetrieve
+from models.Hamming_acc.hamming_acc_retrieve import HammingAccRetrieve
+from models.all.all_retrieve import AllRetrieve
 from ir_measures import *
 
-from models.ann_mvdr.ann_mvdr_retrieve import AnnMvdrRetrieve
+from models.all_cls.all_cls_retrieve import AllClsRetrieve
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -14,7 +18,7 @@ if __name__ == '__main__':
     parser.add_argument("--save_dir", type=str, default=r"/home/chunming/data/chunming/projects/LSHMultivector")
     parser.add_argument("--results_save_to", type=str, default=r"./results")
 
-    parser.add_argument("--dataset", type=str, default=r"nfcorpus")
+    parser.add_argument("--dataset", type=str, default=r"scifact")
     parser.add_argument("--device", type=str, default=r"cpu")
 
 
@@ -34,30 +38,38 @@ if __name__ == '__main__':
     parser.add_argument("--measure", type=list, default=[nDCG @ 10, RR @ 10, Success @ 10])
 
     parser.add_argument("--topk", type=int, default=30)
-    parser.add_argument("--token_top_k", type=int, default=10000)
-    parser.add_argument("--ann_type", type=str, default=r"IndexLSH")
+    parser.add_argument("--hamming_threshold", type=int, default=2)
+    parser.add_argument("--hash_dimmension", type=int, default=6)
+    parser.add_argument("--version", type=str, default="v1")
+
     args = parser.parse_args()
 
-    save_dir = r"{}/ann_mvdr/{}".format(args.results_save_to, args.dataset)
-    eval_path = r"{}/{}".format(save_dir, "eval_results")
 
+    # retrieve = AllRetrieve(args)
+    # retrieve.setup()
+    # # retrieve.show_doc_embedding(0)
+    # path =retrieve.retrieve()
+    # eval_results = retrieve.evaluation(path)
+    # print(eval_results)
 
-
-    if not os.path.exists(eval_path):
-        os.makedirs(eval_path)
-    eval_list = []
-
-    retrieve = AnnMvdrRetrieve(args)
+    retrieve = AllClsRetrieve(args)
     retrieve.setup()
+    # retrieve.show_doc_embedding(0)
     path = retrieve.retrieve()
-    retrieve.save_perf()
-    evaluation = retrieve.evaluation(path)
-    print(evaluation)
-    # eval_results = retrieve.eval_results
-    # eval_results["hash_dimmension"] = str(hash_dimmension)
-    # eval_list.append(eval_results)
-    #
-    # eval_df = pd.DataFrame(eval_list)
-    # eval_df.to_csv(r"{}/eval.csv".format(eval_path), index=False)
+    eval_results = retrieve.evaluation(path)
+    print(eval_results)
+
+
+
+    # for hash_dimmension in [5,6,7,8,9,10,11,12,13,14,15,16]:
+    #     args.hash_dimmension = hash_dimmension
+    #     print(args.hash_dimmension)
+    #     retrieve = HammingAccRetrieve(args)
+    #     retrieve.run()
+    #     eval_results = retrieve.eval_results
+    #     eval_results["hash_dimmension"] = str(hash_dimmension)
+    #     eval_list.append(eval_results)
+
+
 
 
